@@ -78,16 +78,25 @@ func pack(serializedItems [][]byte) ([][]byte, error) {
 // number of chunks is a power of two, Merkleize the chunks, and return the root.
 // Note that merkleize on a single chunk is simply that chunk, i.e. the identity
 // when the number of chunks is one.
-func bitwiseMerkleize(chunks [][]byte, padding uint64) [32]byte {
+func bitwiseMerkleize(chunks [][]byte, limit uint64, hasLimit bool) [32]byte {
+	padding := limit
+	if !hasLimit {
+		padding = uint64(len(chunks))
+	}
 	count := uint64(len(chunks))
+
+	if count > limit {
+		panic("COUNT BIGGER THAN LIMIT")
+	}
+	if limit == 0 {
+		return toBytes32(zeroHashes[0])
+	}
+
 	depth := uint64(bitLength(0))
 	if bitLength(count-1) > depth {
 		depth = bitLength(count - 1)
 	}
-	maxDepth := depth
-	if bitLength(padding-1) > maxDepth {
-		maxDepth = bitLength(padding - 1)
-	}
+	maxDepth := bitLength(limit - 1)
 	layers := make([][]byte, maxDepth+1)
 
 	for idx, chunk := range chunks {
