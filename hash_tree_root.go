@@ -168,6 +168,9 @@ func makeBasicArrayHasher(typ reflect.Type) (hasher, error) {
 		if err != nil {
 			return [32]byte{}, err
 		}
+		if val.Len() == 0 {
+			chunks = [][]byte{}
+		}
 		return bitwiseMerkleize(chunks, 1, false /* has limit */)
 	}
 	return hasher, nil
@@ -202,6 +205,9 @@ func makeCompositeArrayHasher(typ reflect.Type) (hasher, error) {
 		chunks, err := pack(roots)
 		if err != nil {
 			return [32]byte{}, err
+		}
+		if val.Len() == 0 {
+			chunks = [][]byte{}
 		}
 		return bitwiseMerkleize(chunks, limit, true /* has limit */)
 	}
@@ -335,7 +341,7 @@ func makeFieldsHasher(fields []field) (hasher, error) {
 				}
 			}
 			if err != nil {
-				return [32]byte{}, fmt.Errorf("failed to hash field of struct: %v", err)
+				return [32]byte{}, fmt.Errorf("failed to hash field %s of struct: %v", f.name, err)
 			}
 			roots = append(roots, r[:])
 		}
