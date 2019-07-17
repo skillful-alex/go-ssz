@@ -44,30 +44,23 @@ func TestYamlStateRoundTrip(t *testing.T) {
 }
 
 func TestYamlBlockRoundTrip(t *testing.T) {
-	// s := &SszBenchmarkBlock{}
-	// populateStructFromYaml(t, "./yaml/ssz_single_block.yaml", s)
-	// encoded, err := ssz.Marshal(s.Value)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// if !bytes.Equal(encoded, s.Serialized) {
-	// 	t.Fatal("Failed to encode")
-	// }
-	// var targetBlock MinimalBlock
-	// if err := ssz.Unmarshal(encoded, &targetBlock); err != nil {
-	// 	t.Fatal(err)
-	// }
-	// if !ssz.DeepEqual(targetBlock, s.Value) {
-	// 	t.Error("Unmarshaled encoding did not match original value")
-	// }
-	// if _, err := ssz.HashTreeRoot(s.Value); err != nil {
-	// 	t.Fatal(err)
-	// }
-	item := &MainnetBeaconState{
-		FinalizedCheckpoint:        MainnetCheckpoint{Epoch: 0},
-		CurrentJustifiedCheckpoint: MainnetCheckpoint{Epoch: 2},
+	s := &SszBenchmarkBlock{}
+	populateStructFromYaml(t, "./yaml/ssz_single_block.yaml", s)
+	encoded, err := ssz.Marshal(s.Value)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if _, err := ssz.HashTreeRoot(item); err != nil {
+	if !bytes.Equal(encoded, s.Serialized) {
+		t.Fatal("Failed to encode")
+	}
+	var targetBlock MinimalBlock
+	if err := ssz.Unmarshal(encoded, &targetBlock); err != nil {
+		t.Fatal(err)
+	}
+	if !ssz.DeepEqual(targetBlock, s.Value) {
+		t.Error("Unmarshaled encoding did not match original value")
+	}
+	if _, err := ssz.HashTreeRoot(s.Value); err != nil {
 		t.Fatal(err)
 	}
 }
