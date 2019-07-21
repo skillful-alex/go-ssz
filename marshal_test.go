@@ -12,9 +12,9 @@ type testDepositData struct {
 	WithdrawalCredentials []byte   `protobuf:"bytes,2,opt,name=withdrawal_credentials,json=withdrawalCredentials,proto3" json:"withdrawal_credentials,omitempty" ssz-size:"32"`
 	Amount                uint64   `protobuf:"varint,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	Signature             []byte   `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty" ssz-size:"96"`
-	XXX_NoUnkeyedLiteral  struct{} `json:"-"`
-	XXX_unrecognized      []byte   `json:"-"`
-	XXX_sizecache         int32    `json:"-"`
+	XXXNoUnkeyedLiteral   struct{} `json:"-"`
+	XXXunrecognized       []byte   `json:"-"`
+	XXXsizecache          int32    `json:"-"`
 }
 
 func TestMarshalDepositDataLen(t *testing.T) {
