@@ -2,7 +2,6 @@ package ssz
 
 import (
 	"reflect"
-	"strings"
 )
 
 func isBasicType(kind reflect.Kind) bool {
@@ -69,25 +68,24 @@ func determineFixedSize(val reflect.Value, typ reflect.Type) uint64 {
 		return uint64(val.Len())
 	case kind == reflect.Array || kind == reflect.Slice:
 		var num uint64
-		for i := 0; i < typ.Len(); i++ {
+		for i := 0; i < val.Len(); i++ {
 			num += determineFixedSize(val.Index(i), typ.Elem())
 		}
 		return num
 	case kind == reflect.Struct:
 		totalSize := uint64(0)
-		for i := 0; i < typ.NumField(); i++ {
-			f := typ.Field(i)
-			if strings.Contains(f.Name, "XXX") {
-				continue
-			}
-			fType, err := determineFieldType(f)
-			if err != nil {
-				return 0
-			}
-			totalSize += determineFixedSize(val.Field(i), fType)
+		fields, err := structFields(typ)
+		if err != nil {
+			return 0
+		}
+		for _, f := range fields {
+			totalSize += determineFixedSize(val.Field(f.index), f.typ)
 		}
 		return totalSize
 	case kind == reflect.Ptr:
+		if val.IsNil() {
+			return 0
+		}
 		return determineFixedSize(val.Elem(), typ.Elem())
 	default:
 		return 0
@@ -112,22 +110,24 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 		return totalSize
 	case kind == reflect.Struct:
 		totalSize := uint64(0)
-		for i := 0; i < typ.NumField(); i++ {
-			f := typ.Field(i)
-			fType, err := determineFieldType(f)
-			if err != nil {
-				return 0
-			}
-			if isVariableSizeType(fType) {
-				varSize := determineVariableSize(val.Field(i), fType)
+		fields, err := structFields(typ)
+		if err != nil {
+			return 0
+		}
+		for _, f := range fields {
+			if isVariableSizeType(f.typ) {
+				varSize := determineVariableSize(val.Field(f.index), f.typ)
 				totalSize += varSize + BytesPerLengthOffset
 			} else {
-				varSize := determineFixedSize(val.Field(i), fType)
+				varSize := determineFixedSize(val.Field(f.index), f.typ)
 				totalSize += varSize
 			}
 		}
 		return totalSize
 	case kind == reflect.Ptr:
+		if val.IsNil() {
+			return 0
+		}
 		return determineVariableSize(val.Elem(), val.Elem().Type())
 	default:
 		return 0
@@ -136,6 +136,9 @@ func determineVariableSize(val reflect.Value, typ reflect.Type) uint64 {
 
 func determineSize(val reflect.Value) uint64 {
 	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return 0
+		}
 		return determineSize(val.Elem())
 	}
 	if isVariableSizeType(val.Type()) {
