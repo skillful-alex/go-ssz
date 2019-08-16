@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/prysmaticlabs/go-ssz"
+	ssz "github.com/prysmaticlabs/go-ssz"
 )
 
 type fork struct {
@@ -139,7 +139,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 	}
 }
 
-type allTypesSubStruct struct {
+type UInt64InStruct struct {
 	UInt64 uint64
 }
 
@@ -151,8 +151,8 @@ type allTypes struct {
 	UInt64    uint64
 	Slice     []byte
 	Array     [100]byte
-	SubStruct allTypesSubStruct
-	Pointer   *allTypesSubStruct
+	SubStruct UInt64InStruct
+	Pointer   *UInt64InStruct
 }
 
 func randBytes(count int) []byte {
@@ -171,8 +171,8 @@ func generateData(count int) []allTypes {
 			UInt32:    rand.Uint32(),
 			UInt64:    rand.Uint64(),
 			Slice:     randBytes(rand.Intn(256)),
-			SubStruct: allTypesSubStruct{UInt64: rand.Uint64()},
-			Pointer:   &allTypesSubStruct{UInt64: rand.Uint64()},
+			SubStruct: UInt64InStruct{UInt64: rand.Uint64()},
+			Pointer:   &UInt64InStruct{UInt64: rand.Uint64()},
 		}
 		copy(data[i].Array[:], randBytes(len(data[i].Array)))
 	}
@@ -201,8 +201,15 @@ func BenchmarkUnmarshal(b *testing.B) {
 	b.StopTimer()
 	// check Marshal/Unmarshal
 	for i := 0; i < b.N; i++ {
-		if !reflect.DeepEqual(data[i], result[i]) {
-			b.Fatalf("incorrect marshal/unmarshal for\n%v\nser data:\n%v\nresult:\n%v", data[i], ser[i], result[i])
+		if data[i].Bool != result[i].Bool ||
+			data[i].UInt8 != result[i].UInt8 ||
+			data[i].UInt16 != result[i].UInt16 ||
+			data[i].UInt32 != result[i].UInt32 ||
+			data[i].UInt64 != result[i].UInt64 ||
+			(!reflect.DeepEqual(data[i].Slice, result[i].Slice) && !(len(data[i].Slice) == 0 && len(result[i].Slice) == 0)) ||
+			data[i].SubStruct.UInt64 != result[i].SubStruct.UInt64 ||
+			data[i].Pointer.UInt64 != result[i].Pointer.UInt64 {
+			b.Fatalf("incorrect marshal/unmarshal for\n%v\nser data:\n%v\nresult:\n%v\n(%v;%v)", data[i], ser[i], result[i], data[i].Slice, result[i].Slice)
 		}
 	}
 }
