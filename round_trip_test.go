@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	ssz "github.com/prysmaticlabs/go-ssz"
+	"github.com/prysmaticlabs/go-ssz"
 )
 
 type fork struct {
@@ -68,6 +68,9 @@ func TestMarshalUnmarshal(t *testing.T) {
 		// Uint16 test cases.
 		{input: uint16(100), ptr: new(uint16)},
 		{input: uint16(232), ptr: new(uint16)},
+		// Int32 test cases.
+		{input: int32(1), ptr: new(int32)},
+		{input: int32(1029391), ptr: new(int32)},
 		// Uint32 test cases.
 		{input: uint32(1), ptr: new(uint32)},
 		{input: uint32(1029391), ptr: new(uint32)},
@@ -88,9 +91,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 		{input: []bool{true, false, true, true, true}, ptr: new([]bool)},
 		{input: []uint32{0, 0, 0}, ptr: new([]uint32)},
 		{input: []uint32{92939, 232, 222}, ptr: new([]uint32)},
-		// Struct decoding test cases.
-		{input: forkExample, ptr: new(fork)},
-		{input: nestedItemExample, ptr: new(nestedItem)},
+		// String test cases.
+		{input: "hello world", ptr: new(string)},
 		{input: nestedVarItemExample, ptr: new(nestedVarItem)},
 		{input: varItemExample, ptr: new(varItem)},
 		{input: varItemAmbiguous, ptr: new(varItem)},
@@ -111,6 +113,9 @@ func TestMarshalUnmarshal(t *testing.T) {
 		{input: [2]*fork{&forkExample, &forkExample}, ptr: new([2]*fork)},
 	}
 	for _, tt := range tests {
+		if _, err := ssz.HashTreeRoot(tt.input); err != nil {
+			t.Fatal(err)
+		}
 		serializedItem, err := ssz.Marshal(tt.input)
 		if err != nil {
 			t.Fatal(err)

@@ -99,7 +99,26 @@ def go_ssz_dependencies():
         importpath = "github.com/prysmaticlabs/go-bitfield",
     )
 
+    _maybe(
+        go_repository,
+        name = "com_github_minio_sha256_simd",
+        commit = "05b4dd3047e5d6e86cb4e0477164b850cd896261",
+        importpath = "github.com/minio/sha256-simd",
+    )
 
+    _maybe(
+        go_repository,
+        name = "com_github_protolambda_zssz",
+        commit = "632f11e5e281660402bd0ac58f76090f3503def0",
+        importpath = "github.com/protolambda/zssz",
+    )
+
+    _maybe(
+        go_repository,
+        name = "com_github_pkg_errors",
+        commit = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7",
+        importpath = "github.com/pkg/errors",
+    )
 
 def _maybe(repo_rule, name, **kwargs):
     if name not in native.existing_rules():
